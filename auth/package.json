@@ -1,0 +1,22 @@
+{
+  "name": "puissance4",
+  "version": "1.0.0",
+  "description": "**Projet de Développement AOS**",
+  "main": "app.js",
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0"
+  },
+  "dependencies": {
+    "express": "^4.21.1",
+    "mongoose": "^8.7.1",
+    "puissance4": "file:"
+  },
+  "scripts": {
+    "start": "node app.js",
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
