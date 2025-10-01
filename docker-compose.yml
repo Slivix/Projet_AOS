@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  
+  user-service:
+    build: ./backend/user-service
+    ports:
+      - "8002:8002"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017
+    depends_on:
+      - mongo
+
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - user-service
+     
+volumes:
+  mongo-data:
