@@ -10,7 +10,13 @@ services:
       - MONGO_URI=mongodb://mongo:27017
     depends_on:
       - mongo
-
+      
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - user-service
 
   mongo:
     image: mongo:latest
