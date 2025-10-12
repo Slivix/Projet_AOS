@@ -1,7 +1,10 @@
 version: '3.8'
 
 services:
-  
+  game-service:
+      build: ./backend/game-service
+      ports:
+        - "8000:8000"  
   user-service:
     build: ./backend/user-service
     ports:
@@ -17,6 +20,7 @@ services:
       - "80:80"
     depends_on:
       - user-service
+      - game-service
 
   mongo:
     image: mongo:latest
