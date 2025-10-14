@@ -1,20 +1,69 @@
-<!doctype html><html lang="fr"><head>
-  <meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Test Connect-N</title>
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Puissance X – Test</title>
   <link rel="stylesheet" href="styles.css"/>
-</head><body class="page">
-  <div class="card">
+    <style>
+    .row { display:flex; gap:14px; align-items:center; flex-wrap:wrap; }
+    .section { margin-top:16px; padding-top:12px; border-top:1px solid #0002; }
+    .board { display:grid; gap:6px; justify-content:center; margin-top:12px; }
+    .cell { width:48px; height:48px; border-radius:50%; border:2px solid #0b1b3b; background:#0b1b3b22; cursor:pointer; }
+    .cell.p1 { background:#f55d5d; } /* rouge */
+    .cell.p2 { background:#ffd700; } /* jaune */
+    .hidden { display:none !important; }
+  </style>
+</head>
+<body class="page">
+  <div class="card" style="max-width:1100px;margin:40px auto;">
     <h1>PUISSANCE X</h1>
-    <div class="controls">
-      <label>Lignes <input id="rows" type="number" value="6" min="4"></label>
-      <label>Colonnes <input id="cols" type="number" value="7" min="4"></label>
-      <label>À aligner <input id="connect" type="number" value="4" min="3"></label>
-      <label>Adversaire <input id="p2" type="text" value="Bob"></label>
-      <button id="newGame" class="btn">Nouvelle partie</button>
+
+    <!-- Sélecteur de mode -->
+    <div class="row" style="gap:18px;align-items:center">
+      <strong>Mode :</strong>
+      <label><input type="radio" name="mode" id="modeLocal" checked> Local</label>
+      <label><input type="radio" name="mode" id="modeOnline"> En ligne</label>
     </div>
-    <div id="meta" class="meta"></div>
-    <div id="board" class="board"></div>
-    <div id="status" class="status"></div>
+    <hr/>
+
+    <!-- Zone LOCAL (inchangée + bouton existant) -->
+    <section id="localSection">
+      <div class="controls">
+        <label>Lignes <input id="rows" type="number" value="6" min="4"></label>
+        <label>Colonnes <input id="cols" type="number" value="7" min="4"></label>
+        <label>À aligner <input id="connect" type="number" value="4" min="3"></label>
+        <label>Adversaire <input id="p2" type="text" value="Bob"></label>
+        <button id="newGame" class="btn">Créer une partie</button>
+      </div>
+    </section>
+
+    <!-- Zone ONLINE : juste l’UI, branchée sur le JS ci-dessous -->
+    <section id="onlineSection" style="display:none;">
+      <div class="controls" style="flex-wrap:wrap;gap:10px;">
+        <label>Votre pseudo <input id="onlineName" type="text" placeholder="Votre pseudo"></label>
+        <label>Lignes <input id="rowsOnline" type="number" value="6" min="4"></label>
+        <label>Colonnes <input id="colsOnline" type="number" value="7" min="4"></label>
+        <label>À aligner <input id="connectOnline" type="number" value="4" min="3"></label>
+
+        <button id="btnCreateLobby" class="btn">Créer un lobby</button>
+        <button id="btnListLobbies" class="btn btn-secondary">Lister lobbies</button>
+
+        <label>ID lobby <input id="joinRoomId" type="text" placeholder="ex: abc123"></label>
+        <button id="btnJoinLobby" class="btn">Rejoindre</button>
+        <button id="btnRefresh" class="btn btn-secondary">Rafraîchir l’état</button>
+
+        <button id="btnLeaveLobby" class="btn btn-secondary">Quitter le lobby</button>
+      </div>
+
+      <div id="lobbies" class="meta" style="margin-top:6px;"></div>
+    </section>
+
+    <div id="meta" class="meta" style="margin-top:14px;"></div>
+    <div id="board" class="board" style="margin-top:8px;"></div>
+    <div id="status" class="status" style="margin-top:8px;"></div>
   </div>
-  <script src="game_script.js"></script>
-</body></html>
+
+  <script defer src="game_script.js"></script>
+</body>
+</html>

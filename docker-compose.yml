@@ -9,6 +9,7 @@ services:
     container_name: game-service
     environment:
       - MONGO_URI=mongodb://mongo:27017
+      - USER_SERVICE_URL=http://user-service:8002
     ports:
       - "8000:8000"
     depends_on:
