@@ -1,15 +1,15 @@
-# Utiliser une image de base Python
+# backend/game-service/Dockerfile
 FROM python:3.9-slim
 
-WORKDIR /app
+WORKDIR /srv
+ENV PIP_NO_CACHE_DIR=1 PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 
+COPY requirements.txt .
+RUN pip install -r requirements.txt
 
-COPY requirements.txt requirements.txt
-
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY . .
+# copie le paquet
+COPY app ./app
+ENV PYTHONPATH=/srv
 
 EXPOSE 8000
-
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,8 +1,8 @@
-# Utiliser une image de base Nginx
+# frontend/Dockerfile
 FROM nginx:alpine
 
-# Copier les fichiers HTML, CSS et JS dans le répertoire de Nginx
-COPY . /usr/share/nginx/html
+WORKDIR /usr/share/nginx/html
+COPY user.html user_script.js styles.css game.html game_script.js ./
 
-# Exposer le port sur lequel Nginx va s'exécuter
-EXPOSE 80
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY . /usr/share/nginx/html/

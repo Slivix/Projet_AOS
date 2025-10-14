@@ -1,0 +1,20 @@
+<!doctype html><html lang="fr"><head>
+  <meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Test Connect-N</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head><body class="page">
+  <div class="card">
+    <h1>PUISSANCE X</h1>
+    <div class="controls">
+      <label>Lignes <input id="rows" type="number" value="6" min="4"></label>
+      <label>Colonnes <input id="cols" type="number" value="7" min="4"></label>
+      <label>À aligner <input id="connect" type="number" value="4" min="3"></label>
+      <label>Adversaire <input id="p2" type="text" value="Bob"></label>
+      <button id="newGame" class="btn">Nouvelle partie</button>
+    </div>
+    <div id="meta" class="meta"></div>
+    <div id="board" class="board"></div>
+    <div id="status" class="status"></div>
+  </div>
+  <script src="game_script.js"></script>
+</body></html>
