@@ -1,7 +1,18 @@
 version: '3.8'
 
 services:
-  
+  game-service:
+    build:
+      context: ./backend/game-service        
+      dockerfile: Dockerfile
+    image: game-service:dev                  
+    container_name: game-service
+    environment:
+      - MONGO_URI=mongodb://mongo:27017
+    ports:
+      - "8000:8000"
+    depends_on:
+      - user-service
   user-service:
     build: ./backend/user-service
     ports:
@@ -17,6 +28,7 @@ services:
       - "80:80"
     depends_on:
       - user-service
+      - game-service
 
   mongo:
     image: mongo:latest
