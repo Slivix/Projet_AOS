@@ -1,213 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="styles.css">
-  <title>Connexion/Inscription</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Puissance 4 - Connexion / Inscription</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="user.css">
 </head>
 <body>
-    <div class="falling-pieces"></div>
-  <div id="form-container" class="red-bg">
 
+<div id="plateau"></div>
+
+<div id="form-container">
+  
+  <form id="login-form">
+    <h1>PUISSANCE 5</h1>
+    <h2>Connexion</h2>
+    <input type="text" placeholder="Nom d'utilisateur">
+    <input type="password" placeholder="Mot de passe">
+    <button type="submit">Se connecter</button>
+    <span class="switch-link" id="show-register">Pas encore inscrit ? S'inscrire</span>
+  </form>
+
+  
+  <form id="register-form" class="hidden">
     <h1>PUISSANCE 4</h1>
-    <form id="login-form">
-      <h1>Connexion</h1>
-      <div class="input-container">
-        <input type="text" placeholder="Nom d'utilisateur" id="login-username" name="login-username" required>
-      </div>
-      <div class="input-container">
-        <input type="password" placeholder="Mot de passe"id="login-password" name="login-password" required>
-      </div>
-      <button type="submit" class="blue-btn">Se connecter</button>
-      <p class="toggle-form">
-        Pas encore inscrit ? <a href="#" id="show-inscription">S'inscrire</a>
-      </p>
-    </form>
+    <h2>Inscription</h2>
+    <input type="text" placeholder="Nom d'utilisateur">
+    <input type="email" placeholder="Email">
+    <input type="password" placeholder="Mot de passe">
+    <button type="submit">S'inscrire</button>
+    <span class="switch-link" id="show-login">Déjà inscrit ? Se connecter</span>
+  </form>
+</div>
 
-    <form id="create-account-form" class="hidden">
-      <h1>Inscription</h1>
-      <div class="input-container">
-        <input type="text" placeholder="Nom d'utilisateur" id="username" name="username" required>
-      </div>
-      <div class="input-container">
-        <input type="email" placeholder="Email" id="email" name="email" required>
-      </div>
-      <div class="input-container">
-        <input type="password" placeholder="Mot de passe" id="password" name="password" required>
-      </div>
-      <button type="submit" class="blue-btn">S'inscrire</button>
-      <p class="toggle-form">
-        Déjà inscrit ? <a href="#" id="show-connexion">Se connecter</a>
-      </p>
-    </form>
-  </div>
-  <script src="js/user_script.js"></script>
+<script src="user.js"></script>
+
 </body>
 </html>
-
-<style>
-    body {
-  margin: 0;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-family: Arial, sans-serif;
-  background-color: rgb(232, 230, 226);
-  overflow: hidden;
-}
-
-#form-container {
-  width: 350px;
-  padding: 20px;
-  border-radius: 15px;
-  transition: background-color 0.3s ease-in-out;
-  z-index: 1;
-  box-shadow: inset0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.red-bg {
-  background-color: #f55d5d;
-}
-
-.yellow-bg {
-  background-color: #ffd700;
-}
-
-.hidden {
-  display: none;
-}
-
-h1 {
-  text-align: center;
-  color: #ffffff;
-  font-size: 1.8rem;
-  margin-bottom: 20px;
-}
-
-.input-container {
-  margin-bottom: 15px;
-  display: flex;
-  flex-direction: column;
-}
-
-input {
-  padding: 10px;
-  font-size: 1rem;
-  border: none;
-  border-radius: 5px;
-  box-shadow: inset 0 -4px 6px rgba(0, 0, 0, 0.1);
-}
-
-input::placeholder {
-  color: #999;
-}
-
-.blue-btn {
-  width: 100%;
-  padding: 10px;
-  font-size: 1rem;
-  background-color: #315EBC;
-  color: #ffffff;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  transition: background-color 0.3s ease;
-}
-
-.blue-btn:hover {
-  background-color: #22499e;
-}
-
-.toggle-form {
-  text-align: center;
-  margin-top: 15px;
-  color: #ffffff;
-}
-
-.toggle-form a {
-  color: #ffffff;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-
-
-.falling-pieces {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  overflow: hidden;
-  z-index: 0; /* Derrière tout */
-}
-
-.piece {
-  position: absolute;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  animation: fall linear forwards;
-}
-
-.piece.red {
-  background-color: #f55d5d;
-  box-shadow: inset 0 -3px 6px rgba(0, 0, 0, 0.4);
-}
-
-.piece.yellow {
-  background-color: #ffd700;
-  box-shadow: inset 0 -3px 6px rgba(0, 0, 0, 0.4);
-}
-
-@keyframes fall {
-  0% {
-    transform: translateY(-100%);
-  }
-  100% {
-    transform: translateY(100vh); /* Jusqu'au bas de l'écran */
-  }
-}
-
-
-</style>
-
-<script>
-    document.getElementById("show-inscription").addEventListener("click", function (e) {
-  e.preventDefault();
-  document.getElementById("login-form").classList.add("hidden");
-  document.getElementById("create-account-form").classList.remove("hidden");
-  document.getElementById("form-container").classList.remove("red-bg");
-  document.getElementById("form-container").classList.add("yellow-bg");
-});
-
-document.getElementById("show-connexion").addEventListener("click", function (e) {
-  e.preventDefault();
-  document.getElementById("create-account-form").classList.add("hidden");
-  document.getElementById("login-form").classList.remove("hidden");
-  document.getElementById("form-container").classList.remove("yellow-bg");
-  document.getElementById("form-container").classList.add("red-bg");
-});
-
-
-  const fallingPiecesContainer = document.querySelector('.falling-pieces');
-
-  function createPiece() {
-    const piece = document.createElement('div');
-    piece.classList.add('piece');
-    piece.classList.add(Math.random() < 0.5 ? 'red' : 'yellow'); // Rouge ou Jaune
-    piece.style.left = Math.random() * 100 + 'vw'; // Position horizontale aléatoire
-    piece.style.animationDuration = Math.random() * 2 + 3 + 's'; // Durée aléatoire
-    fallingPiecesContainer.appendChild(piece);
-
-    // Les pièces restent visibles même après l'animation
-  }
-
-  // Générer des pièces toutes les 300ms
-  setInterval(createPiece, 300);
-
-</script>
