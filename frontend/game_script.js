@@ -50,6 +50,9 @@ $("newGame").onclick = async ()=>{
   const rows = parseInt($("rows").value,10), cols = parseInt($("cols").value,10), connect = parseInt($("connect").value,10);
   const p2 = (document.getElementById("p2").value || "Bob").trim();
   const payload = { id:Date.now(), players:[{id:1,name:username},{id:2,name:p2}], rows, cols, connect };
-  try { state = await createGame(payload); renderMeta(); renderBoard(); renderStatus(); }
+  try { 
+    state = await createGame(payload); 
+     document.querySelector('.card').classList.add('game-started');
+     renderMeta(); renderBoard(); renderStatus(); }
   catch(e){ alert(e.message); }
 };
