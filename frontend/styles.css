@@ -1,15 +1,166 @@
-:root{--bg:#f6f7fb;--fg:#222;--card:#fff;--btn:#315EBC;--btnH:#22499e;--ghost:#e9edf7;--p1:#ef5350;--p2:#ffd54f;--board:#0a2b61}
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,Arial;background:var(--bg);color:var(--fg)}
-.page{min-height:100vh;display:grid;place-items:center;padding:24px}
-.card{width:min(900px,95vw);background:var(--card);border-radius:12px;padding:20px;box-shadow:0 10px 30px rgba(0,0,0,.08)}
-h1,h2{margin:.25rem 0 1rem}.vstack{display:flex;flex-direction:column;gap:.5rem}
-input,button{font-size:16px}input{padding:10px;border-radius:8px;border:1px solid #dde1ef;background:#fafbff}
-.btn{padding:10px 14px;border-radius:8px;border:none;color:#fff;background:var(--btn);cursor:pointer}.btn:hover{background:var(--btnH)}
-.btn.ghost{background:var(--ghost);color:#123}.link{color:var(--btn);text-decoration:underline}hr{border:none;border-top:1px solid #eee;margin:16px 0}
-.controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-.controls input{width:80px;text-align:center}
-.board{display:grid;gap:6px;background:var(--board);padding:8px;border-radius:12px;width:fit-content}
-.cell{width:48px;height:48px;border-radius:50%;background:#f5f7fb;cursor:pointer;box-shadow:inset 0 -4px 6px rgba(0,0,0,.1)}
-.cell.p1{background:var(--p1);box-shadow:inset 0 -4px 6px rgba(0,0,0,.3)}
-.cell.p2{background:var(--p2);box-shadow:inset 0 -4px 6px rgba(0,0,0,.3)}
-.meta,.status{margin:8px 0 0;color:#333}
+:root {
+  --bg-gradient: linear-gradient(135deg, #c9d6ff, #e2e2e2);
+  --card-bg: rgba(255, 255, 255, 0.85);
+  --btn-gradient: linear-gradient(45deg, #4e54c8, #8f94fb);
+  --btn-gradient-hover: linear-gradient(45deg, #6e72fc, #9fa8ff);
+  --p1:  rgb(255,201,60);
+  --p2: rgba(255,75,92);
+  --board-bg: #1e2a78;
+  --cell-bg: #f0f4ff;
+}
+
+* {
+  box-sizing: border-box;
+  transition: all 0.25s ease-in-out;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Poppins', sans-serif;
+  background: var(--bg-gradient);
+  color: #222;
+}
+
+.page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.card {
+  width: min(900px, 95vw);
+  background: var(--card-bg);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,255,255,0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+h1 {
+  font-family: 'Fredoka One', cursive;
+  text-align: center;
+  font-size: 2.5rem;
+  color: #1a237e;
+  text-shadow: 1px 2px 5px rgba(0,0,0,0.1);
+  margin-bottom: 2rem;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.controls label {
+  font-weight: 500;
+  color: #333;
+}
+
+.controls input {
+  width: 80px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #d0d6ef;
+  background: #f9faff;
+  text-align: center;
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.08);
+}
+
+.btn {
+  padding: 10px 20px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 600;
+  color: #fff;
+  background: var(--btn-gradient);
+  cursor: pointer;
+  box-shadow: 0 8px 15px rgba(78,84,200,0.4);
+}
+
+.btn:hover {
+  background: var(--btn-gradient-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(78,84,200,0.5);
+}
+
+.btn:active {
+  transform: scale(0.95);
+  box-shadow: 0 5px 10px rgba(78,84,200,0.3);
+}
+
+.board {
+  display: grid;
+  gap: 8px;
+  background: var(--board-bg);
+  padding: 12px;
+  border-radius: 18px;
+  box-shadow: inset 0 5px 15px rgba(0,0,0,0.4);
+  justify-content: center;
+}
+
+.cell {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  background: var(--cell-bg);
+  cursor: pointer;
+  box-shadow: inset 0 -5px 8px rgba(0,0,0,0.15);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cell:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 15px rgba(255,255,255,0.5);
+}
+
+.cell.p1 {
+  background: var(--p1);
+  box-shadow: inset 0 -4px 8px rgba(0,0,0,0.3), 0 0 8px rgba(255,75,92,0.6);
+}
+
+.cell.p2 {
+  background: var(--p2);
+  box-shadow: inset 0 -4px 8px rgba(0,0,0,0.3), 0 0 8px rgba(255,201,60,0.6);
+}
+
+.meta, .status {
+  margin-top: 12px;
+  text-align: center;
+  font-weight: 500;
+  font-size: 15px;
+  color: #333;
+}
+
+
+/* -------------------- */
+/* Style après Nouvelle partie */
+.card.game-started {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.85));
+  box-shadow: 0 15px 50px #d0d6ef;
+  border: 1px solid #d0d6ef;
+}
+
+.card.game-started h1 {
+  color: #1e2a78;
+  text-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+}
+
+.card.game-started .board {
+  background: linear-gradient(135deg, #f0f4ff, #f9faff);
+  box-shadow: inset 0 5px 20px #f9faff;
+}
+
+.card.game-started #status {
+  color: #1e2a78;
+  font-weight: bold;
+  font-size: 18px;
+}
