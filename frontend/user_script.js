@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Stocker le nom de l'utilisateur dans le stockage local
             localStorage.setItem('username', username);
          
-            window.location.href = 'menu.html';
+            window.location.href = 'game.html';
         })
         .catch(error => {
             console.error('Erreur:', error.message);

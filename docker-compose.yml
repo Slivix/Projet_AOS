@@ -18,6 +18,8 @@ services:
     build: ./backend/user-service
     ports:
       - "8002:8002"
+    volumes:
+      - ./app:/code/app
     environment:
       - MONGO_URI=mongodb://mongo:27017
     depends_on:
@@ -40,3 +42,4 @@ services:
 
 volumes:
   mongo-data:
+  
