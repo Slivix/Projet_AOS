@@ -24,6 +24,7 @@
       <strong>Mode :</strong>
       <label><input type="radio" name="mode" id="modeLocal" checked> Local</label>
       <label><input type="radio" name="mode" id="modeOnline"> En ligne</label>
+      <label><input type="radio" name="mode" id="modeAi"> IA</label>
     </div>
     <hr/>
 
@@ -35,6 +36,12 @@
         <label>À aligner <input id="connect" type="number" value="4" min="3"></label>
         <label>Adversaire <input id="p2" type="text" value="Bob"></label>
         <button id="newGame" class="btn">Créer une partie</button>
+      </div>
+      <div id="aiOptions" class="controls" style="margin-top:8px;display:none;">
+        <label>Difficulte <select id="aiLevel">
+          <option value="easy">Facile</option>
+          <option value="medium">Moyen</option>
+        </select></label>
       </div>
     </section>
 
