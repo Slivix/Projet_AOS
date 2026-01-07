@@ -74,100 +74,134 @@ def delete_game(game_id: int):
         return {"message": "Game deleted successfully"}
     raise HTTPException(status_code=404, detail="Game not found")
 
-# ---- Mode en ligne en test ----
-online_games: Dict[str, dict] = {}  # gameCode -> état
+# ---- MODE EN LIGNE (lobby simple en mémoire) --------------------------------
+from fastapi import Body
+from typing import Dict
+from app.core.engine import create_board, drop_token, check_winner, is_draw
+from app.schemas.game import GameState, GameConfig
+from app.schemas.player import Player
+from app.core import user_client as users_client
+
+router_online = APIRouter()
+_online: Dict[str, GameState] = {}   # gameCode -> GameState
+
+class OnlineCreate(BaseModel):
+    gameCode: str
+    playerName: str
+    rows: int = 6
+    cols: int = 7
+    connect: int = 4
+    verify_user: bool = True
+
+class OnlineJoin(BaseModel):
+    gameCode: str
+    playerName: str
+    verify_user: bool = False
 
 @router_online.post("/")
-def create_online_game(
-    playerName: str = Body(...),
-    gameCode: str = Body(...),
-    rows: int = Body(6),
-    cols: int = Body(7),
-    connect: int = Body(4),
-    verify_user: bool = Body(True)
-):
-    if gameCode in online_games:
-        raise HTTPException(status_code=400, detail="Game code already exists.")
-    if any(g.get("player1") == playerName or g.get("player2") == playerName
-           for g in online_games.values()):
-        raise HTTPException(status_code=400, detail="Player name is already in use.")
-    if verify_user and not users_client.user_exists(playerName):
-        raise HTTPException(status_code=404, detail="User does not exist in user-service.")
+def create_online_game(payload: OnlineCreate):
+    # Optionnel : vérifier l'existence côté user-service
+    if payload.verify_user and not users_client.user_exists(payload.playerName):
+        raise HTTPException(status_code=404, detail="User not found")
 
-    online_games[gameCode] = {
-        "player1": playerName,
-        "player2": None,
-        "board": create_board(rows, cols),
-        "current_turn": 1,
-        "status": "waiting",
-        "rows": rows, "cols": cols, "connect": connect
-    }
-    return {"message": "Online game created successfully."}
+    if payload.gameCode in _online:
+        raise HTTPException(status_code=400, detail="Game code already exists")
+
+    cfg = GameConfig(rows=payload.rows, cols=payload.cols, connect=payload.connect)
+    board = create_board(cfg.rows, cfg.cols)
+
+    state = GameState(
+        id=hash(payload.gameCode) & 0x7FFFFFFF,   # id interne
+        players=[Player(id=1, name=payload.playerName)],  # J1 créé
+        config=cfg,
+        board=board,
+        current_player_index=0,
+    )
+    _online[payload.gameCode] = state
+    return {"message": "Lobby created", "code": payload.gameCode, "state": state}
 
 @router_online.post("/join")
-def join_online_game(playerName: str = Body(...), gameCode: str = Body(...), verify_user: bool = Body(True)):
-    game = online_games.get(gameCode)
-    if not game:
-        raise HTTPException(status_code=404, detail="Game not found.")
-    if game["player2"] is not None:
-        raise HTTPException(status_code=400, detail="Game already has two players.")
-    if playerName in [game["player1"], game["player2"]] or any(
-        g.get("player1") == playerName or g.get("player2") == playerName
-        for g in online_games.values()
-    ):
-        raise HTTPException(status_code=400, detail="Player name is already in use.")
-    if verify_user and not users_client.user_exists(playerName):
-        raise HTTPException(status_code=404, detail="User does not exist in user-service.")
+def join_online_game(payload: OnlineJoin):
+    if payload.verify_user and not users_client.user_exists(payload.playerName):
+        raise HTTPException(status_code=404, detail="User not found")
 
-    game["player2"] = playerName
-    game["status"] = "ready"
-    return {"message": "Joined game successfully.", "game": game}
+    g = _online.get(payload.gameCode)
+    if not g:
+        raise HTTPException(status_code=404, detail="Game not found")
+    if len(g.players) == 2:
+        raise HTTPException(status_code=409, detail="Game already full")
 
-@router_online.get("/{gameCode}")
-def get_online_game_status(gameCode: str):
-    game = online_games.get(gameCode)
-    if not game:
-        raise HTTPException(status_code=404, detail="Game not found.")
-    return game
+    # Empêche les doublons de pseudo dans la même partie
+    if any(p.name == payload.playerName for p in g.players):
+        raise HTTPException(status_code=400, detail="Name already used in this game")
 
-@router_online.put("/{gameCode}")
-def play_online_move(gameCode: str, column: int = Query(..., ge=0), player_id: int = Query(...)):
-    game = online_games.get(gameCode)
-    if not game:
-        raise HTTPException(status_code=404, detail="Game not found.")
-    if game["status"] not in ("waiting", "ready", "active"):
-        raise HTTPException(status_code=400, detail="Game is not in a playable state.")
-    if player_id not in [1, 2]:
-        raise HTTPException(status_code=400, detail="Invalid player ID")
+    g.players.append(Player(id=2, name=payload.playerName))
+    return {"message": "Joined", "state": g}
+
+@router_online.get("/lobbies")
+def list_lobbies():
+    # Small summary list for the frontend
+    return [
+        {
+            "room_id": code,
+            "players": [p.name for p in g.players],
+            "status": g.status,
+        }
+        for code, g in _online.items()
+    ]
+
+@router_online.get("/{code}")
+def online_state(code: str):
+    g = _online.get(code)
+    if not g:
+        raise HTTPException(status_code=404, detail="Game not found")
+    return g
+
+@router_online.put("/{code}/move")
+def online_move(code: str, move: Move):
+    g = _online.get(code)
+    if not g:
+        raise HTTPException(status_code=404, detail="Game not found")
+    if g.status != "active":
+        raise HTTPException(status_code=409, detail=f"Game is {g.status}")
+    if len(g.players) < 2:
+        raise HTTPException(status_code=409, detail="Waiting for opponent")
+
+    current = g.players[g.current_player_index]
+    if move.player_id != current.id:
+        raise HTTPException(status_code=403, detail="Not this player's turn")
 
     try:
-        r, c = drop_token(game["board"], column, player_id)
+        r, c = drop_token(g.board, move.column, move.player_id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    if check_winner(game["board"], r, c, player_id, game["connect"]):
-        game["status"] = "won"
-        game["winner_id"] = player_id
-        # Optionnel : users_client.add_score(winner_name, +1) si tu ajoutes un endpoint côté user-service
-        return {"message": f"Player {player_id} wins!", "board": game["board"], "status": "won", "winner_id": player_id}
+    if check_winner(g.board, r, c, move.player_id, g.config.connect):
+        g.status = "won"
+        g.winner_id = move.player_id
+        return g
 
-    if is_draw(game["board"]):
-        game["status"] = "draw"
-        return {"message": "The game is a draw!", "board": game["board"], "status": "draw"}
+    if is_draw(g.board):
+        g.status = "draw"
+        return g
 
-    game["current_turn"] = 2 if player_id == 1 else 1
-    game["status"] = "active"
-    return {"message": f"Player {player_id} played in column {column}", "board": game["board"], "status": "active", "current_turn": game["current_turn"]}
+    g.current_player_index = (g.current_player_index + 1) % len(g.players)
+    return g
 
-@router_online.patch("/{gameCode}/reset")
-def reset_online_game(gameCode: str):
-    game = online_games.get(gameCode)
-    if not game:
-        raise HTTPException(status_code=404, detail="Game not found.")
-    game["next_start_player"] = 2 if game.get("next_start_player") == 1 else 1
-    start = game["next_start_player"]
-    game["board"] = create_board(game["rows"], game["cols"])
-    game.pop("winner_id", None)
-    game["status"] = "active"
-    game["current_turn"] = start
-    return {"message": f"Game reset. Player {start} starts now.", "board": game["board"], "status": "active", "current_turn": start}
+@router_online.post("/{code}/reset")
+def online_reset(code: str):
+    g = _online.get(code)
+    if not g:
+        raise HTTPException(status_code=404, detail="Game not found")
+    g.board = create_board(g.config.rows, g.config.cols)
+    g.status = "active"
+    g.winner_id = None
+    g.current_player_index = 0
+    return {"message": "Reset", "state": g}
+
+@router_online.delete("/{code}")
+def online_destroy(code: str):
+    if code in _online:
+        del _online[code]
+        return {"message": "Destroyed"}
+    raise HTTPException(status_code=404, detail="Game not found")
