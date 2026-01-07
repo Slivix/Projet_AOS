@@ -8,7 +8,7 @@ const API_ONLINE = "/game-online-api";
 const $ = (id) => document.getElementById(id);
 
 let state = null;              // état de la partie en cours (local OU en ligne)
-let currentMode = "local";     // "local" | "online"
+let currentMode = "local";     // "local" | "online" | "ai"
 let onlineContext = {          // petit contexte pour le mode online
 
   roomId: null,
@@ -212,6 +212,63 @@ function applyMoveSim(column, player_id) {
   return state;
 }
 
+
+function aiPickColumn(curState){
+  if (!curState || !curState.board) return null;
+  const board = curState.board;
+  const rows = board.length;
+  const cols = board[0].length;
+  const connect = (curState.config && curState.config.connect) ? curState.config.connect : 4;
+  const valid = [];
+  for (let c = 0; c < cols; c++) {
+    if (board[0][c] === 0) valid.push(c);
+  }
+  if (!valid.length) return null;
+  for (const c of valid) {
+    if (aiWouldWin(board, c, 2, connect)) return c;
+  }
+  for (const c of valid) {
+    if (aiWouldWin(board, c, 1, connect)) return c;
+  }
+  return valid[Math.floor(Math.random() * valid.length)];
+}
+
+function aiWouldWin(board, col, pid, connect){
+  const copy = board.map(r => r.slice());
+  const row = aiDrop(copy, col, pid);
+  if (row === null) return false;
+  return aiCheckWin(copy, row, col, pid, connect);
+}
+
+function aiDrop(board, col, pid){
+  for (let r = board.length - 1; r >= 0; r--) {
+    if (board[r][col] === 0) {
+      board[r][col] = pid;
+      return r;
+    }
+  }
+  return null;
+}
+
+function aiCount(board, r, c, dr, dc, pid){
+  const rows = board.length;
+  const cols = board[0].length;
+  let n = 0;
+  while (r >= 0 && r < rows && c >= 0 && c < cols && board[r][c] === pid) {
+    n++; r += dr; c += dc;
+  }
+  return n;
+}
+
+function aiCheckWin(board, lastR, lastC, pid, connect){
+  const dirs = [[0,1],[1,0],[1,1],[1,-1]];
+  for (const [dr, dc] of dirs) {
+    const line = aiCount(board, lastR, lastC, dr, dc, pid) + aiCount(board, lastR, lastC, -dr, -dc, pid) - 1;
+    if (line >= connect) return true;
+  }
+  return false;
+}
+
 // ---------- Rendu ----------
 function renderMeta(){
   if(!state) { $("meta").textContent = ""; return; }
@@ -251,8 +308,12 @@ function renderBoard(){
           const curOnline = state.players?.[state.current_player_index];
           if (curOnline && curOnline.id !== onlineContext.playerId) return alert("Ce n'est pas ton tour.");
         }
+        if (currentMode === "ai") {
+          const curAi = state.players?.[state.current_player_index];
+          if (curAi && curAi.id !== 1) return;
+        }
         try {
-          if (currentMode === "local") {
+          if (currentMode === "local" || currentMode === "ai") {
             const cur = state.players[state.current_player_index];
             state = await playMoveLocal(state.id, cIdx, cur.id);
           } else {
@@ -260,6 +321,19 @@ function renderBoard(){
             state = await playMoveOnline(onlineContext.roomId, cIdx, onlineContext.playerId);
           }
           renderMeta(); renderBoard(); renderStatus();
+          if (currentMode === "ai" && state && state.status === "active") {
+            setTimeout(async ()=>{
+              if (currentMode !== "ai" || !state || state.status !== "active") return;
+              const cur = state.players?.[state.current_player_index];
+              if (!cur || cur.id !== 2) return;
+              const col = aiPickColumn(state);
+              if (col === null) return;
+              try {
+                state = await playMoveLocal(state.id, col, 2);
+                renderMeta(); renderBoard(); renderStatus();
+              } catch(e) { console.error(e); }
+            }, 300);
+          }
         } catch(e){ alert(e.message); }
       };
       boardEl.appendChild(d);
@@ -281,6 +355,12 @@ function renderStatus(){
       return;
     }
   }
+  if (currentMode === "ai" && state.status === "active") {
+    const cur = state.players[state.current_player_index];
+    const isMe = cur && cur.id === 1;
+    $("status").textContent = isMe ? "A toi de jouer." : "IA joue...";
+    return;
+  }
   $("status").textContent = state.status==="active" ? "En cours..." : (state.status==="won" ? "Termine : victoire" : "Termine : nul");
 }
 
@@ -291,9 +371,10 @@ $("newGame").onclick = async ()=>{
   const cols = parseInt($("cols").value,10);
   const connect = parseInt($("connect").value,10);
   const p2 = ($("p2").value || "Bob").trim();
+  const p2Name = (currentMode === "ai") ? "IA" : p2;
 
   // payload “simple” pour coller à ton service actuel
-  const payload = { id: Date.now(), players:[{id:1,name:username},{id:2,name:p2}], rows, cols, connect };
+  const payload = { id: Date.now(), players:[{id:1,name:username},{id:2,name:p2Name}], rows, cols, connect };
   try {
     state = await createGameLocal(payload);
     renderMeta(); renderBoard(); renderStatus();
@@ -306,6 +387,8 @@ $("modeLocal").addEventListener("change", ()=> {
     currentMode = "local";
     $("localSection").style.display = "";
     $("onlineSection").style.display = "none";
+    $("aiOptions").style.display = "none";
+    $("p2").disabled = false;
     stopOnlinePolling();
   }
 });
@@ -314,9 +397,22 @@ $("modeOnline").addEventListener("change", ()=> {
     currentMode = "online";
     $("localSection").style.display = "none";
     $("onlineSection").style.display = "";
-    // préremplir pseudo
+    $("aiOptions").style.display = "none";
+    $("p2").disabled = false;
+    // pr??remplir pseudo
     $("onlineName").value = localStorage.getItem("username") || $("onlineName").value || "";
     startOnlinePolling();
+  }
+});
+$("modeAi").addEventListener("change", ()=> {
+  if ($("modeAi").checked){
+    currentMode = "ai";
+    $("localSection").style.display = "";
+    $("onlineSection").style.display = "none";
+    $("aiOptions").style.display = "";
+    $("p2").value = "IA";
+    $("p2").disabled = true;
+    stopOnlinePolling();
   }
 });
 
