@@ -743,5 +743,14 @@ const quitBtn = $("btnQuitGame");
 if (quitBtn) { quitBtn.onclick = quitCurrentGame; }
 
 // premier rendu "vide"
+const logoutBtn = document.getElementById("logoutBtn");
+
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", () => {
+    window.location.href = "user.html";
+  });
+}
+
+// premier rendu “vide”
 renderStatus();
 loadHistory();

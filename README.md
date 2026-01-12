@@ -10,34 +10,69 @@ Roni BASAK
 
 
 
-Projet Puissance 4
+Projet Puissance X
 
-Fonctionnalité :
---Game--
-Mode local : Créer une partie et faire un 1 contre 1 contre un autre joueurs ->En cours
-Mode Online : Création/rejoindre une partie créer par des users en ligne
-->En cours
-Mode IA : faire des parties contre des IA avec probablement des niveaux de difficultés ->à faire
-D'autre fonctionnalités à venir
+## **📝 Installation et Exécution**
 
---Code--
-Authentification des Utilisateurs : Connexion/inscription par un pseudo/mail/mot de passe
-Mode local : Créer une game et faire un 1 contre 1 contre un autre joueurs ->En cours
-Mode Online : Création/rejoindre une partie créer par des users en ligne
-->En cours
-Mode IA : faire des games contre des IA avec probablement des niveaux de difficultés ->à faire
-D'autre fonctionnalités à venir
+### **Pré-requis** :
+- Python3 installé sur votre machine pour lancer les tests.
+- Docker et Docker Compose installés sur votre machine pour lancer le projet.
 
---Code--
-Authentification des Utilisateurs : Connextion/inscription par un pseudo/mail/mot de passe
-Archi Micro-service : Chaque aspect du jeu sera basée sur des microservices et decentralisée
-Integration : tests unitaire pour garantir une fiabilité du code
+### **Étapes d'Installation** :
 
-Installation :
+1. **Cloner le dépôt** :
 
-Pré-requis :
+Si vous n’avez pas encore cloné le dépôt, exécutez la commande suivante :
+```bash
+git clone https://github.com/Slivix/Projet_AOS
+cd Projet_AOS
+```
 
-À installer sur vos machines:
-Python3
-Docker et Docker compose
+2. **Lancer les tests unitaires** :
+Installer les dependances du projet :
+```bash
+pip install -r requirements.txt
+```
+Lancer les tests :
+```bash
+pytest
+```
 
+
+3. **Construire l'Image Docker** :
+Cela construira les images Docker nécessaires pour exécuter le projet.
+```bash
+docker-compose build
+```
+
+4. **Démarrer le Conteneur Docker** :
+Cette commande lancera les conteneurs Docker et démarrera les services associés.
+```bash
+docker-compose up
+```
+
+Cela va démarrer les services suivants :
+- **game-service** : le service qui permet de gérer la logique du jeu (FastAPI)
+- **user-service** : le service qui permet de gérer la gestion des utilisateurs du jeu (FastAPI)
+- **Base de données** : MongoDB
+- **Frontend** : Serveur HTTP Nginx pour héberger le frontend du jeu
+
+1. **Accéder au jeu** :
+- **Menu** :
+   [http://localhost:8000/menu.html](http://localhost:8000/menu.html)
+1. **Accéder à la Documentation de l'API** :
+- **Swagger UI** de l'API game-service :  
+   [http://localhost:8000/docs](http://localhost:8000/docs)
+
+- **Swagger UI** de l'API user-service :  
+   [http://localhost:8002/docs](http://localhost:8003/docs)
+
+Ces adresses vous permettront de consulter et tester l'API via une interface graphique.
+
+## **👨🏼‍💻 Technologies Utilisées**
+- **Backend** : Python, NodesJS
+- **Frontend** : HTML, CSS, JavaScript
+- **Base de Données** : MongoDB
+
+## **⚖️ Licence**
+Le jeu Puissance 4 est sous licence Open Source MIT et est disponible gratuitement.
