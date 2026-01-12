@@ -6,8 +6,9 @@ from passlib.context import CryptContext
 import os
 import logging
 from typing import List, Optional
+from datetime import datetime
 from bson import ObjectId
-from app.model_user import UserCreate, UserResponse
+from app.model_user import UserCreate, UserResponse, HistoryEntry
 
 
 
@@ -60,6 +61,7 @@ def create_user(user: UserCreate, user_collection=Depends(get_user_collection)):
     # Prepare user data for insertion into MongoDB
     user_dict = user.dict(exclude={"password"})  # Exclude plain password from the data going into DB
     user_dict["hashed_password"] = hashed_password  # Store hashed password
+    user_dict.setdefault("history", [])
 
     logger.info(f"Inserting user data into database: {user_dict}")
     
@@ -138,3 +140,40 @@ def get_all_scores(user_collection=Depends(get_user_collection)):
     
     logger.info(f"Retrieved scores for {len(users)} users")
     return users
+
+class HistoryCreate(BaseModel):
+    name: str
+    game_id: Optional[str] = None
+    mode: Optional[str] = None
+    result: Optional[str] = None
+    opponent: Optional[str] = None
+    winner: Optional[str] = None
+    rows: Optional[int] = None
+    cols: Optional[int] = None
+    connect: Optional[int] = None
+    move_count: Optional[int] = None
+    duration_s: Optional[int] = None
+    ended_at: Optional[str] = None
+
+@user_router.post("/history")
+def add_history_entry(payload: HistoryCreate, user_collection=Depends(get_user_collection)):
+    logger.info(f"Add history entry for user={payload.name}")
+    entry = payload.dict(exclude={"name"})
+    if not entry.get("ended_at"):
+        entry["ended_at"] = datetime.utcnow().isoformat()
+
+    result = user_collection.update_one(
+        {"name": payload.name},
+        {"$push": {"history": entry}}
+    )
+    if result.matched_count != 1:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"message": "History added"}
+
+@user_router.get("/history/{name}", response_model=List[HistoryEntry])
+def get_history(name: str, user_collection=Depends(get_user_collection)):
+    logger.info(f"Request received to get history for user {name}")
+    user = user_collection.find_one({"name": name})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user.get("history", [])

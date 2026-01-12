@@ -168,3 +168,98 @@ h1 {
 
 
 
+
+
+.btn-secondary {
+  background: #ffffff;
+  color: #1e2a78;
+  border: 1px solid #c9d6ff;
+  box-shadow: none;
+}
+
+.btn-secondary:hover {
+  background: #f2f4ff;
+  box-shadow: 0 6px 12px rgba(78, 84, 200, 0.15);
+}
+
+.history-title {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #1e2a78;
+}
+
+.history-list {
+  width: 100%;
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.history-stats {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.history-stat {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #d0d6ef;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #444;
+}
+
+.history-stat strong {
+  display: block;
+  font-size: 1.05rem;
+  color: #1e2a78;
+}
+
+.history-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #d0d6ef;
+}
+
+.history-main {
+  display: grid;
+  gap: 4px;
+}
+
+.history-sub {
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.history-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: #444;
+}
+
+.tag {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #eef1ff;
+  color: #1e2a78;
+}
+
+.result.win { background: #d7f5dd; color: #1b6b2a; }
+.result.loss { background: #ffe3e3; color: #a62d2d; }
+.result.draw { background: #f5f1d6; color: #7a6a18; }

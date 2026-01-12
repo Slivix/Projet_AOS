@@ -4,6 +4,7 @@ const API_LOCAL  = "/game-api";
 // En ligne : préfixe via le proxy nginx frontal. Doit être routé vers
 // http://game-service:8000/game-online/ (voir `frontend/nginx.conf`).
 const API_ONLINE = "/game-online-api";
+const USER_API = "http://localhost:8002";
 
 const $ = (id) => document.getElementById(id);
 
@@ -18,6 +19,8 @@ let onlineContext = {          // petit contexte pour le mode online
 };
 
 let onlinePollTimer = null;
+const historyLoggedKeys = new Set();
+let gameStartedAt = null;
 function startOnlinePolling(){
   if (onlinePollTimer || !onlineContext.roomId) return;
   onlinePollTimer = setInterval(async ()=>{
@@ -38,8 +41,244 @@ function clearOnlineState(){
   onlineContext.playerId = null;
   onlineContext.token = null;
   state = null;
+  gameStartedAt = null;
   $("lobbies").textContent = "";
   renderMeta(); renderBoard(); renderStatus();
+}
+
+function countMovesFromBoard(board){
+  if (!board || !board.length) return 0;
+  let count = 0;
+  for (const row of board) {
+    for (const cell of row) {
+      if (cell !== 0) count++;
+    }
+  }
+  return count;
+}
+
+function getDurationSeconds(){
+  if (!gameStartedAt) return null;
+  const diff = Math.max(0, Date.now() - gameStartedAt);
+  return Math.round(diff / 1000);
+}
+
+function updateModeLock(){
+  const locked = !!state && state.status === "active";
+  ["modeLocal", "modeOnline", "modeAi"].forEach((id)=>{
+    const el = $(id);
+    if (el) el.disabled = locked;
+  });
+}
+
+function getGameKey(){
+  if (!state) return null;
+  if (currentMode === "online") {
+    return String(onlineContext.roomId || state.id || "");
+  }
+  return String(state.id || "");
+}
+
+function getWinnerName(){
+  if (!state) return null;
+  if (state.winner_id && state.players) {
+    const pl = state.players.find(p => p.id === state.winner_id);
+    if (pl && pl.name) return pl.name;
+  }
+  return state.winner_name || null;
+}
+
+function buildHistoryPayload(){
+  const username = localStorage.getItem("username");
+  if (!username || !state) return null;
+  const userPlayer = (state.players || []).find(p => p.name === username);
+  if (!userPlayer) return null;
+
+  const gameKey = getGameKey();
+  if (!gameKey) return null;
+
+  const cfg = state.config || { rows: $("rows").value, cols: $("cols").value, connect: $("connect").value };
+  const winnerName = getWinnerName();
+  const opponent = (state.players || []).find(p => p.id !== userPlayer.id)?.name
+    || (currentMode === "ai" ? "IA" : null);
+  const moveCount = countMovesFromBoard(state.board);
+  const durationS = getDurationSeconds();
+
+  let result = "draw";
+  if (state.status === "won") {
+    result = state.winner_id === userPlayer.id ? "win" : "loss";
+  }
+
+  return {
+    name: username,
+    game_id: gameKey,
+    mode: currentMode,
+    result,
+    opponent,
+    winner: winnerName,
+    rows: parseInt(cfg.rows, 10),
+    cols: parseInt(cfg.cols, 10),
+    connect: parseInt(cfg.connect, 10),
+    move_count: moveCount,
+    duration_s: durationS,
+    ended_at: new Date().toISOString()
+  };
+}
+
+async function recordHistory(payload){
+  try {
+    const res = await fetch(`${USER_API}/users/history`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) loadHistory();
+  } catch (e) {
+    console.error("History save failed", e);
+  }
+}
+
+
+function maybeRecordHistory(){
+  if (!state || (state.status !== "won" && state.status !== "draw")) return;
+  const gameKey = getGameKey();
+  if (!gameKey) return;
+  const logKey = `${currentMode}:${gameKey}:${state.status}`;
+  if (historyLoggedKeys.has(logKey)) return;
+
+  const payload = buildHistoryPayload();
+  if (!payload) return;
+  historyLoggedKeys.add(logKey);
+  recordHistory(payload);
+}
+
+function formatHistoryDate(value){
+  if (!value) return "";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value);
+  return d.toLocaleString("fr-FR");
+}
+
+function formatDuration(seconds){
+  if (seconds === null || seconds === undefined) return "";
+  const total = Math.max(0, Number(seconds));
+  if (!Number.isFinite(total)) return "";
+  const mins = Math.floor(total / 60);
+  const secs = total % 60;
+  if (mins === 0) return `${secs}s`;
+  return `${mins}m${String(secs).padStart(2, "0")}s`;
+}
+
+function renderHistoryStats(items){
+  const statsEl = $("historyStats");
+  if (!statsEl) return;
+  if (!Array.isArray(items) || items.length === 0) {
+    statsEl.innerHTML = "";
+    return;
+  }
+  const total = items.length;
+  const wins = items.filter(i => i.result === "win").length;
+  const losses = items.filter(i => i.result === "loss").length;
+  const draws = items.filter(i => i.result === "draw").length;
+  const winRate = total ? Math.round((wins / total) * 100) : 0;
+
+  const winMoves = items.filter(i => i.result === "win" && Number.isFinite(i.move_count));
+  const avgMovesToWin = winMoves.length
+    ? Math.round(winMoves.reduce((sum, i) => sum + i.move_count, 0) / winMoves.length)
+    : null;
+  const allMoves = items.filter(i => Number.isFinite(i.move_count));
+  const avgMovesPerGame = allMoves.length
+    ? Math.round(allMoves.reduce((sum, i) => sum + i.move_count, 0) / allMoves.length)
+    : null;
+
+  statsEl.innerHTML = [
+    `<div class="history-stat"><strong>${total}</strong>Parties</div>`,
+    `<div class="history-stat"><strong>${winRate}%</strong>Taux de victoire</div>`,
+    `<div class="history-stat"><strong>${wins}/${losses}/${draws}</strong>V/D/N</div>`,
+    `<div class="history-stat"><strong>${avgMovesToWin ?? "-"}</strong>Coups moyens (victoire)</div>`,
+    `<div class="history-stat"><strong>${avgMovesPerGame ?? "-"}</strong>Coups moyens (partie)</div>`
+  ].join("");
+}
+
+function renderHistory(items){
+  const listEl = $("historyList");
+  const emptyEl = $("historyEmpty");
+  if (!listEl || !emptyEl) return;
+  if (!Array.isArray(items) || items.length === 0) {
+    emptyEl.textContent = "Aucune partie enregistree.";
+    listEl.innerHTML = "";
+    renderHistoryStats([]);
+    return;
+  }
+  emptyEl.textContent = "";
+  listEl.innerHTML = "";
+  renderHistoryStats(items);
+  const ordered = items.slice().reverse();
+  ordered.forEach((item)=>{
+    const mode = item.mode || "local";
+    const rows = item.rows || "?";
+    const cols = item.cols || "?";
+    const connect = item.connect || "?";
+    const opponent = item.opponent || "?";
+    const winner = item.winner || "?";
+
+    const resultKey = (item.result === "win" || item.result === "loss" || item.result === "draw")
+      ? item.result
+      : "draw";
+    const resultLabel = item.result === "win" ? "Victoire" : (item.result === "loss" ? "Defaite" : "Nul");
+
+    const row = document.createElement("div");
+    row.className = "history-item";
+
+    const main = document.createElement("div");
+    main.className = "history-main";
+    const title = document.createElement("div");
+    title.textContent = `${mode} - ${rows}x${cols} - aligner ${connect}`;
+    const sub = document.createElement("div");
+    sub.className = "history-sub";
+    const movesLabel = Number.isFinite(item.move_count) ? `Coups: ${item.move_count}` : null;
+    const durationLabel = item.duration_s ? `Duree: ${formatDuration(item.duration_s)}` : null;
+    const extra = [movesLabel, durationLabel].filter(Boolean).join(" | ");
+    sub.textContent = `Adversaire: ${opponent} | Gagnant: ${winner}${extra ? " | " + extra : ""}`;
+    main.appendChild(title);
+    main.appendChild(sub);
+
+    const meta = document.createElement("div");
+    meta.className = "history-meta";
+    const badge = document.createElement("span");
+    badge.className = `tag result ${resultKey}`;
+    badge.textContent = resultLabel;
+    const date = document.createElement("span");
+    date.textContent = formatHistoryDate(item.ended_at);
+    meta.appendChild(badge);
+    meta.appendChild(date);
+
+    row.appendChild(main);
+    row.appendChild(meta);
+    listEl.appendChild(row);
+  });
+}
+
+async function loadHistory(){
+  const listEl = $("historyList");
+  const emptyEl = $("historyEmpty");
+  if (!listEl || !emptyEl) return;
+  const username = localStorage.getItem("username");
+  if (!username) {
+    emptyEl.textContent = "Connecte-toi pour voir l'historique.";
+    listEl.innerHTML = "";
+    return;
+  }
+  try {
+    const res = await fetch(`${USER_API}/users/history/${encodeURIComponent(username)}`);
+    if (!res.ok) throw new Error("history");
+    const items = await res.json();
+    renderHistory(items);
+  } catch (e) {
+    emptyEl.textContent = "Impossible de charger l'historique.";
+    listEl.innerHTML = "";
+    renderHistoryStats([]);
+  }
 }
 
 
@@ -342,7 +581,8 @@ function renderBoard(){
 }
 
 function renderStatus(){
-  if (!state) { $("status").textContent = ""; return; }
+  if (!state) { $("status").textContent = ""; updateModeLock(); return; }
+  updateModeLock();
   if (currentMode === "online") {
     if (!state.players || state.players.length < 2) {
       $("status").textContent = "En attente d'un adversaire...";
@@ -362,6 +602,20 @@ function renderStatus(){
     return;
   }
   $("status").textContent = state.status==="active" ? "En cours..." : (state.status==="won" ? "Termine : victoire" : "Termine : nul");
+  maybeRecordHistory();
+}
+
+function quitCurrentGame(){
+  if (!state) return;
+  const confirmQuit = confirm("Quitter la partie en cours ?");
+  if (!confirmQuit) return;
+  if (currentMode === "online") {
+    clearOnlineState();
+  } else {
+    state = null;
+    gameStartedAt = null;
+    renderMeta(); renderBoard(); renderStatus();
+  }
 }
 
 // ---------- Actions UI ----------
@@ -377,6 +631,7 @@ $("newGame").onclick = async ()=>{
   const payload = { id: Date.now(), players:[{id:1,name:username},{id:2,name:p2Name}], rows, cols, connect };
   try {
     state = await createGameLocal(payload);
+    gameStartedAt = Date.now();
     renderMeta(); renderBoard(); renderStatus();
   } catch(e){ alert(e.message); }
 };
@@ -430,6 +685,7 @@ $("btnCreateLobby").onclick = async ()=>{
     onlineContext.token  = res.state?.host_token || null;
     state = res.state || null;
     onlineContext.playerId = res.state?.players?.[0]?.id || 1;
+    gameStartedAt = Date.now();
     renderMeta(); renderBoard(); renderStatus();
     startOnlinePolling();
 
@@ -462,6 +718,7 @@ $("btnJoinLobby").onclick = async ()=>{
     // récupérer l’état initial
     state = res.state || await refreshOnline(onlineContext.roomId);
     if (!state) { state = { id: onlineContext.gameId || onlineContext.roomId, status:"active", config:{rows:6,cols:7,connect:4}, players:[{id:1,name:"Joueur1"},{id:2,name:"Joueur2"}], current_player_index:0, board:Array.from({length:6},()=>Array(7).fill(0)) }; }
+    gameStartedAt = Date.now();
     renderMeta(); renderBoard(); renderStatus();
     startOnlinePolling();
   } catch(e){ alert(e.message); }
@@ -479,5 +736,12 @@ $("btnLeaveLobby").onclick = async ()=>{
   clearOnlineState();
 };
 
-// premier rendu “vide”
+const historyBtn = $("btnHistoryRefresh");
+if (historyBtn) { historyBtn.onclick = loadHistory; }
+
+const quitBtn = $("btnQuitGame");
+if (quitBtn) { quitBtn.onclick = quitCurrentGame; }
+
+// premier rendu "vide"
 renderStatus();
+loadHistory();

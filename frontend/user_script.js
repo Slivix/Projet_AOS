@@ -1,13 +1,18 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const createAccountForm = document.getElementById('create-account-form');
+    const createAccountForm = document.getElementById('register-form');
     const loginForm = document.getElementById('login-form');
 
     createAccountForm.addEventListener('submit', function(event) {
         event.preventDefault();
 
-        const username = document.getElementById('username').value;
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
+        const inputs = createAccountForm.querySelectorAll('input');
+        if (inputs.length < 3) {
+            alert("Champs d'inscription manquants.");
+            return;
+        }
+        const username = inputs[0].value;
+        const email = inputs[1].value;
+        const password = inputs[2].value;
 
         fetch('http://localhost:8002/users', {
             method: 'POST',
@@ -46,8 +51,13 @@ document.addEventListener('DOMContentLoaded', function() {
     loginForm.addEventListener('submit', function(event) {
         event.preventDefault();
 
-        const username = document.getElementById('login-username').value;
-        const password = document.getElementById('login-password').value;
+        const inputs = loginForm.querySelectorAll('input');
+        if (inputs.length < 2) {
+            alert("Champs de connexion manquants.");
+            return;
+        }
+        const username = inputs[0].value;
+        const password = inputs[1].value;
 
         fetch('http://localhost:8002/auth', {
             method: 'POST',
@@ -73,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Stocker le nom de l'utilisateur dans le stockage local
             localStorage.setItem('username', username);
            
-            window.location.href = 'menu.html';
+            window.location.href = 'game.html';
         })
         .catch(error => {
             console.error('Erreur:', error.message);

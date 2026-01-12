@@ -69,6 +69,19 @@
     <div id="meta" class="meta" style="margin-top:14px;"></div>
     <div id="board" class="board" style="margin-top:8px;"></div>
     <div id="status" class="status" style="margin-top:8px;"></div>
+    <div class="controls" style="margin-top:10px;">
+      <button id="btnQuitGame" class="btn btn-secondary">Quitter la partie</button>
+    </div>
+    <section id="historySection" class="section" style="width:100%;margin-top:18px;">
+      <div class="row" style="justify-content:space-between;align-items:center;">
+        <h2 class="history-title">Historique</h2>
+        <button id="btnHistoryRefresh" class="btn btn-secondary">Rafraichir</button>
+      </div>
+      <div id="historyStats" class="history-stats"></div>
+      <div id="historyEmpty" class="meta">Connecte-toi pour voir l'historique.</div>
+      <div id="historyList" class="history-list"></div>
+    </section>
+
   </div>
 
   <script defer src="game_script.js"></script>
