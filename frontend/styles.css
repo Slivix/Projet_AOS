@@ -23,6 +23,19 @@ body {
   color: #222;
 }
 
+.row {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.section {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #0002;
+}
+
 .page {
   min-height: 100vh;
   display: grid;
@@ -43,6 +56,52 @@ body {
   align-items: center;
 }
 
+.topbar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.topbar h1 {
+  margin: 0;
+}
+
+.nav-tabs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tab-link {
+  text-decoration: none;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-weight: 600;
+  color: #1e2a78;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.tab-link:hover {
+  border-color: #c9d6ff;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.tab-link.active {
+  color: #fff;
+  background: var(--btn-gradient);
+  border-color: #4e54c8;
+  box-shadow: 0 6px 14px rgba(78, 84, 200, 0.3);
+}
+
+.logout-btn {
+  margin-left: auto;
+}
+
 h1 {
   font-family: 'Fredoka One', cursive;
   text-align: center;
@@ -50,6 +109,10 @@ h1 {
   color: #1a237e;
   text-shadow: 1px 2px 5px rgba(0, 0, 0, 0.1);
   margin-bottom: 2rem;
+}
+
+.topbar h1 {
+  margin-bottom: 0;
 }
 
 .controls {
@@ -263,3 +326,58 @@ h1 {
 .result.win { background: #d7f5dd; color: #1b6b2a; }
 .result.loss { background: #ffe3e3; color: #a62d2d; }
 .result.draw { background: #f5f1d6; color: #7a6a18; }
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(15, 22, 60, 0.45);
+  z-index: 40;
+  padding: 24px;
+}
+
+.modal-content {
+  width: min(520px, 95vw);
+  background: var(--card-bg);
+  border-radius: 18px;
+  padding: 22px 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  color: #1e2a78;
+}
+
+.modal-message {
+  margin: 14px 0 20px;
+  font-size: 1rem;
+  color: #333;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.modal.win .modal-header h2 {
+  color: #1b6b2a;
+}
+
+.modal.loss .modal-header h2 {
+  color: #a62d2d;
+}
+
+.modal.draw .modal-header h2 {
+  color: #7a6a18;
+}

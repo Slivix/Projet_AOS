@@ -3,85 +3,96 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Puissance X </title>
+  <title>Puissance X - Jeu</title>
   <link rel="stylesheet" href="styles.css"/>
-    <style>
+  <style>
     .row { display:flex; gap:14px; align-items:center; flex-wrap:wrap; }
     .section { margin-top:16px; padding-top:12px; border-top:1px solid #0002; }
     .board { display:grid; gap:6px; justify-content:center; margin-top:12px; }
     .cell { width:48px; height:48px; border-radius:50%; border:2px solid #0b1b3b; background:#0b1b3b22; cursor:pointer; }
-    .cell.p1 { background:#f55d5d; } /* rouge */
-    .cell.p2 { background:#ffd700; } /* jaune */
+    .cell.p1 { background:#f55d5d; }
+    .cell.p2 { background:#ffd700; }
     .hidden { display:none !important; }
   </style>
 </head>
 <body class="page">
   <div class="card" style="max-width:1100px;margin:40px auto;">
-    <h1>PUISSANCE X</h1>
-    <!-- Sélecteur de mode -->
-    <div class="row" style="gap:18px;align-items:center">
-      <strong>Mode :</strong>
-      <label><input type="radio" name="mode" id="modeLocal" checked> Local</label>
-      <label><input type="radio" name="mode" id="modeOnline"> En ligne</label>
-      <label><input type="radio" name="mode" id="modeAi"> IA</label>
+    <div class="topbar">
+      <h1>PUISSANCE X</h1>
+      <nav class="nav-tabs">
+        <a class="tab-link active" href="game.html">Jeu</a>
+        <a class="tab-link" href="history.html">Historique</a>
+      </nav>
+      <button id="logoutBtn" class="btn btn-secondary logout-btn">Deconnexion</button>
     </div>
-    <hr/>
 
-    <!-- Zone LOCAL (inchangée + bouton existant) -->
-    <section id="localSection">
-      <div class="controls">
-        <label>Lignes <input id="rows" type="number" value="6" min="4"></label>
-        <label>Colonnes <input id="cols" type="number" value="7" min="4"></label>
-        <label>À aligner <input id="connect" type="number" value="4" min="3"></label>
-        <label>Adversaire <input id="p2" type="text" value="Bob"></label>
-        <button id="newGame" class="btn">Créer une partie</button>
+    <section id="gameMenu">
+      <div class="row" style="gap:18px;align-items:center">
+        <strong>Mode :</strong>
+        <label><input type="radio" name="mode" id="modeLocal" checked> Local</label>
+        <label><input type="radio" name="mode" id="modeOnline"> En ligne</label>
+        <label><input type="radio" name="mode" id="modeAi"> IA</label>
       </div>
-      <div id="aiOptions" class="controls" style="margin-top:8px;display:none;">
-        <label>Difficulte <select id="aiLevel">
-          <option value="easy">Facile</option>
-          <option value="medium">Moyen</option>
-        </select></label>
-      </div>
+      <hr/>
+
+      <section id="localSection">
+        <div class="controls">
+          <label>Lignes <input id="rows" type="number" value="6" min="4"></label>
+          <label>Colonnes <input id="cols" type="number" value="7" min="4"></label>
+          <label>A aligner <input id="connect" type="number" value="4" min="3"></label>
+          <label>Adversaire <input id="p2" type="text" value="Bob"></label>
+          <button id="newGame" class="btn">Creer une partie</button>
+        </div>
+        <div id="aiOptions" class="controls" style="margin-top:8px;display:none;">
+          <label>Difficulte <select id="aiLevel">
+            <option value="easy">Facile</option>
+            <option value="medium">Moyen</option>
+          </select></label>
+        </div>
+      </section>
+
+      <section id="onlineSection" style="display:none;">
+        <div class="controls" style="flex-wrap:wrap;gap:10px;">
+          <label>Votre pseudo <input id="onlineName" type="text" placeholder="Votre pseudo"></label>
+          <label>Lignes <input id="rowsOnline" type="number" value="6" min="4"></label>
+          <label>Colonnes <input id="colsOnline" type="number" value="7" min="4"></label>
+          <label>A aligner <input id="connectOnline" type="number" value="4" min="3"></label>
+
+          <button id="btnCreateLobby" class="btn">Creer un lobby</button>
+          <button id="btnListLobbies" class="btn btn-secondary">Lister lobbies</button>
+
+          <label>ID lobby <input id="joinRoomId" type="text" placeholder="ex: abc123"></label>
+          <button id="btnJoinLobby" class="btn">Rejoindre</button>
+          <button id="btnRefresh" class="btn btn-secondary">Rafraichir l'etat</button>
+
+          <button id="btnLeaveLobby" class="btn btn-secondary">Quitter le lobby</button>
+        </div>
+
+        <div id="lobbies" class="meta" style="margin-top:6px;"></div>
+      </section>
     </section>
 
-    <!-- Zone ONLINE : juste l’UI, branchée sur le JS ci-dessous -->
-    <section id="onlineSection" style="display:none;">
-      <div class="controls" style="flex-wrap:wrap;gap:10px;">
-        <label>Votre pseudo <input id="onlineName" type="text" placeholder="Votre pseudo"></label>
-        <label>Lignes <input id="rowsOnline" type="number" value="6" min="4"></label>
-        <label>Colonnes <input id="colsOnline" type="number" value="7" min="4"></label>
-        <label>À aligner <input id="connectOnline" type="number" value="4" min="3"></label>
-
-        <button id="btnCreateLobby" class="btn">Créer un lobby</button>
-        <button id="btnListLobbies" class="btn btn-secondary">Lister lobbies</button>
-
-        <label>ID lobby <input id="joinRoomId" type="text" placeholder="ex: abc123"></label>
-        <button id="btnJoinLobby" class="btn">Rejoindre</button>
-        <button id="btnRefresh" class="btn btn-secondary">Rafraîchir l’état</button>
-
-        <button id="btnLeaveLobby" class="btn btn-secondary">Quitter le lobby</button>
+    <section id="gamePlay" class="hidden">
+      <div id="meta" class="meta" style="margin-top:14px;"></div>
+      <div id="board" class="board" style="margin-top:8px;"></div>
+      <div id="status" class="status" style="margin-top:8px;"></div>
+      <div class="controls" style="margin-top:10px;">
+        <button id="btnQuitGame" class="btn btn-secondary">Quitter la partie</button>
       </div>
-
-      <div id="lobbies" class="meta" style="margin-top:6px;"></div>
     </section>
+  </div>
 
-    <div id="meta" class="meta" style="margin-top:14px;"></div>
-    <div id="board" class="board" style="margin-top:8px;"></div>
-    <div id="status" class="status" style="margin-top:8px;"></div>
-    <div class="controls" style="margin-top:10px;">
-      <button id="btnQuitGame" class="btn btn-secondary">Quitter la partie</button>
+  <div id="endModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="endModalTitle">Resultat</h2>
+        <button id="endModalClose" class="btn btn-secondary modal-close">X</button>
+      </div>
+      <p id="endModalMessage" class="modal-message"></p>
+      <div class="modal-actions">
+        <button id="endModalOk" class="btn">OK</button>
+      </div>
     </div>
-    <section id="historySection" class="section" style="width:100%;margin-top:18px;">
-      <div class="row" style="justify-content:space-between;align-items:center;">
-        <h2 class="history-title">Historique</h2>
-        <button id="btnHistoryRefresh" class="btn btn-secondary">Rafraichir</button>
-      </div>
-      <div id="historyStats" class="history-stats"></div>
-      <div id="historyEmpty" class="meta">Connecte-toi pour voir l'historique.</div>
-      <div id="historyList" class="history-list"></div>
-    </section>
-
-    <button id="logoutBtn" class="btn btn-secondary">Déconnexion</button>
   </div>
 
   <script defer src="game_script.js"></script>

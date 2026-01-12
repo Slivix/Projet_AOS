@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Puissance X - Historique</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body class="page">
+  <div class="card" style="max-width:1100px;margin:40px auto;">
+    <div class="topbar">
+      <h1>PUISSANCE X</h1>
+      <nav class="nav-tabs">
+        <a class="tab-link" href="game.html">Jeu</a>
+        <a class="tab-link active" href="history.html">Historique</a>
+      </nav>
+      <button id="logoutBtn" class="btn btn-secondary logout-btn">Deconnexion</button>
+    </div>
+
+    <section id="historySection" class="section" style="width:100%;margin-top:18px;">
+      <div class="row" style="justify-content:space-between;align-items:center;">
+        <h2 class="history-title">Historique</h2>
+        <button id="btnHistoryRefresh" class="btn btn-secondary">Rafraichir</button>
+      </div>
+      <div id="historyStats" class="history-stats"></div>
+      <div id="historyEmpty" class="meta">Connecte-toi pour voir l'historique.</div>
+      <div id="historyList" class="history-list"></div>
+    </section>
+  </div>
+
+  <script defer src="history_script.js"></script>
+</body>
+</html>
