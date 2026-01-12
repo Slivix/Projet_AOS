@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const createAccountForm = document.getElementById('register-form');
+    const createAccountForm = document.getElementById('createAccountForm');
     const loginForm = document.getElementById('login-form');
 
     createAccountForm.addEventListener('submit', function(event) {
