@@ -14,22 +14,22 @@
 
 <div id="form-container">
   
-  <form id="login-form" action="game.html">
+  <form id="login-form">
     <h1>PUISSANCE X</h1>
     <h2>Connexion</h2>
-    <input type="text" placeholder="Nom d'utilisateur">
-    <input type="password" placeholder="Mot de passe">
+    <input type="text" id="login-username" placeholder="Nom d'utilisateur">
+    <input type="password" id="login-password" placeholder="Mot de passe">
     <button type="submit">Se connecter</button>
     <span class="switch-link" id="show-register">Pas encore inscrit ? S'inscrire</span>
   </form>
 
   
-  <form id="register-form" class="hidden">
+  <form id="create-account-form" class="hidden">
     <h1>PUISSANCE X</h1>
     <h2>Inscription</h2>
-    <input type="text" placeholder="Nom d'utilisateur">
-    <input type="email" placeholder="Email">
-    <input type="password" placeholder="Mot de passe">
+    <input type="text" id="username" placeholder="Nom d'utilisateur">
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Mot de passe">
     <button type="submit">S'inscrire</button>
     <span class="switch-link" id="show-login">Déjà inscrit ? Se connecter</span>
   </form>

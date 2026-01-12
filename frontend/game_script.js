@@ -479,5 +479,13 @@ $("btnLeaveLobby").onclick = async ()=>{
   clearOnlineState();
 };
 
+const logoutBtn = document.getElementById("logoutBtn");
+
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", () => {
+    window.location.href = "user.html";
+  });
+}
+
 // premier rendu “vide”
 renderStatus();
